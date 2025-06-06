@@ -1,4 +1,5 @@
 const express = require("express");
+const app = express();
 const bodyParser = require("body-parser");
 const OpenAI = require("openai");
 
@@ -6,7 +7,10 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// POST endpoint to handle incoming messages
+// 🟡 Add this here:
+app.use(bodyParser.json());
+
+// POST endpoint
 app.post("/nova-reply", async (req, res) => {
   try {
     const { text, tone = "neutral", emotion = "calm", sender = "user", sessionId = "default-session" } = req.body;
@@ -15,19 +19,19 @@ app.post("/nova-reply", async (req, res) => {
       return res.status(400).json({ error: "Invalid input" });
     }
 
-   const response = await openai.chat.completions.create({
-  model: "gpt-3.5-turbo",
-  messages: [
-    {
-      role: "system",
-      content: `You are Nova, an empathetic conflict mediator. Tone: ${tone}, Emotion: ${emotion}`,
-    },
-    {
-      role: "user",
-      content: text,
-    },
-  ],
-});
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: `You are Nova, an empathetic conflict mediator. Tone: ${tone}, Emotion: ${emotion}`,
+        },
+        {
+          role: "user",
+          content: text,
+        },
+      ],
+    });
 
     const reply = response.data.choices[0].message.content;
     res.status(200).json({ reply });
@@ -37,8 +41,8 @@ app.post("/nova-reply", async (req, res) => {
   }
 });
 
-// Start the server
+// ✅ Add this at the bottom to start the server on Render:
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Nova Mediate API running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
