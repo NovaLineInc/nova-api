@@ -1,14 +1,17 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
+const cors = require("cors"); // ✅ Add this
 const OpenAI = require("openai");
+
+app.use(cors()); // ✅ Use CORS before any routes
+app.use(bodyParser.json());
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// 🟡 Add this here:
-app.use(bodyParser.json());
+// Your POST endpoint, etc.
 
 // POST endpoint
 app.post("/nova-reply", async (req, res) => {
