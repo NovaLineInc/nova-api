@@ -1,19 +1,16 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
-const cors = require("cors"); // ✅ Add this
+const cors = require("cors");
 const OpenAI = require("openai");
 
-app.use(cors()); // ✅ Use CORS before any routes
+app.use(cors());
 app.use(bodyParser.json());
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Your POST endpoint, etc.
-
-// POST endpoint
 app.post("/nova-reply", async (req, res) => {
   try {
     const { text, tone = "neutral", emotion = "calm", sender = "user", sessionId = "default-session" } = req.body;
@@ -36,7 +33,15 @@ app.post("/nova-reply", async (req, res) => {
       ],
     });
 
-    const reply = response.data.choices[0].message.content;
+    console.log("OpenAI Response:", response);
+
+    const reply = response.choices?.[0]?.message?.content || null;
+
+    if (!reply) {
+      console.error("No reply found in OpenAI response.");
+      return res.status(500).json({ error: "No reply generated" });
+    }
+
     res.status(200).json({ reply });
   } catch (error) {
     console.error("Error in novaReply:", error);
@@ -44,7 +49,6 @@ app.post("/nova-reply", async (req, res) => {
   }
 });
 
-// ✅ Add this at the bottom to start the server on Render:
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
