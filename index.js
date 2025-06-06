@@ -1,15 +1,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
 
-const app = express();
-app.use(bodyParser.json());
-
-// Set your API key via environment variable on Render dashboard
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 // POST endpoint to handle incoming messages
 app.post("/nova-reply", async (req, res) => {
@@ -20,19 +15,19 @@ app.post("/nova-reply", async (req, res) => {
       return res.status(400).json({ error: "Invalid input" });
     }
 
-    const response = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: `You are Nova, an empathetic conflict mediator. Tone: ${tone}, Emotion: ${emotion}`,
-        },
-        {
-          role: "user",
-          content: text,
-        },
-      ],
-    });
+   const response = await openai.chat.completions.create({
+  model: "gpt-3.5-turbo",
+  messages: [
+    {
+      role: "system",
+      content: `You are Nova, an empathetic conflict mediator. Tone: ${tone}, Emotion: ${emotion}`,
+    },
+    {
+      role: "user",
+      content: text,
+    },
+  ],
+});
 
     const reply = response.data.choices[0].message.content;
     res.status(200).json({ reply });
