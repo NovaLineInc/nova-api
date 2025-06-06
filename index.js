@@ -1,17 +1,10 @@
-const express = require("express");
-const cors = require("cors");
-const { Configuration, OpenAIApi } = require("openai");
+const { OpenAI } = require("openai");
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
-app.post("/nova-reply", async (req, res) => {
+exports.novaReply = functions.https.onRequest(async (req, res) => {
   try {
     const { text, tone = "neutral", emotion = "calm", sender = "user", sessionId = "default-session" } = req.body;
 
@@ -19,21 +12,18 @@ app.post("/nova-reply", async (req, res) => {
       return res.status(400).json({ error: "Invalid input" });
     }
 
-    const response = await openai.createChatCompletion({
+    const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         { role: "system", content: `You are Nova, an empathetic conflict mediator. Tone: ${tone}, Emotion: ${emotion}` },
-        { role: "user", content: text }
+        { role: "user", content: text },
       ],
     });
 
-    const reply = response.data.choices[0].message.content;
+    const reply = response.choices[0].message.content;
     res.status(200).json({ reply });
-  } catch (err) {
-    console.error("Nova error:", err.message);
+  } catch (error) {
+    console.error("Error in novaReply:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Nova Mediate API listening on port ${PORT}`));
